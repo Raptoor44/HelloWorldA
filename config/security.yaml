@@ -1,0 +1,12 @@
+# config/packages/security.yaml
+security:
+  # ...
+
+  password_hashers:
+    # auto hasher with default options for the User class (and children)
+    App\Entity\UserAccount: 'auto'
+
+    # auto hasher with custom options for all PasswordAuthenticatedUserInterface instances
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+      algorithm: 'auto'
+      cost:      15
