@@ -46,13 +46,13 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Tweet::class, cascade: ['persist'])]
     private ?Collection $tweets;
 
-    #[ORM\ManyToOne(inversedBy: 'userAccount')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Response $responses = null;
+    #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'userAccount')]
+    private Collection $responses;
 
     public function __construct()
     {
         $this->tweets = new ArrayCollection();
+        $this->responses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -212,14 +212,32 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getResponses(): ?Response
+    /**
+     * @return Collection<int, Response>
+     */
+    public function getResponses(): Collection
     {
         return $this->responses;
     }
 
-    public function setResponses(?Response $responses): static
+    public function addResponse(Response $response): static
     {
-        $this->responses = $responses;
+        if (!$this->responses->contains($response)) {
+            $this->responses->add($response);
+            $response->setUserAccount($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResponse(Response $response): static
+    {
+        if ($this->responses->removeElement($response)) {
+            // set the owning side to null (unless already changed)
+            if ($response->getUserAccount() === $this) {
+                $response->setUserAccount(null);
+            }
+        }
 
         return $this;
     }

@@ -118,4 +118,9 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
+        #[Route("api/tweet/{idTweet}/responses")]
+        public function getResponsesByTweet(int $idTweet): JsonResponse
+        {
+            $tweet = $this->tweetRepository->find($idTweet);
+        }
 }

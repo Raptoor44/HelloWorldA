@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\TweetRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
@@ -29,8 +31,13 @@ class Tweet
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $atCreated = null;
 
-    #[ORM\ManyToOne(inversedBy: 'tweet')]
-    private ?Response $response = null;
+    #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'tweet')]
+    private Collection $responses;
+
+    public function __construct()
+    {
+        $this->responses = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -85,17 +92,34 @@ class Tweet
         return $this;
     }
 
-    public function getResponse(): ?Response
+    /**
+     * @return Collection<int, Response>
+     */
+    public function getResponses(): Collection
     {
-        return $this->response;
+        return $this->responses;
     }
 
-    public function setResponse(?Response $response): static
+    public function addResponse(Response $response): static
     {
-        $this->response = $response;
+        if (!$this->responses->contains($response)) {
+            $this->responses->add($response);
+            $response->setTweet($this);
+        }
 
         return $this;
     }
 
+    public function removeResponse(Response $response): static
+    {
+        if ($this->responses->removeElement($response)) {
+            // set the owning side to null (unless already changed)
+            if ($response->getTweet() === $this) {
+                $response->setTweet(null);
+            }
+        }
+
+        return $this;
+    }
 
 }

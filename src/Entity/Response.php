@@ -18,11 +18,14 @@ class Response
     #[ORM\Column(length: 255)]
     private ?string $content = null;
 
-    #[ORM\OneToMany(targetEntity: UserAccount::class, mappedBy: 'responses')]
-    private Collection $userAccount;
+    #[ORM\ManyToOne(inversedBy: 'responses')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?UserAccount $userAccount = null;
 
-    #[ORM\OneToMany(targetEntity: Tweet::class, mappedBy: 'response')]
-    private Collection $tweet;
+    #[ORM\ManyToOne(inversedBy: 'responses')]
+    private ?Tweet $tweet = null;
+
+
 
     public function __construct()
     {
@@ -47,64 +50,29 @@ class Response
         return $this;
     }
 
-    /**
-     * @return Collection<int, UserAccount>
-     */
-    public function getUserAccount(): Collection
+    public function getUserAccount(): ?UserAccount
     {
         return $this->userAccount;
     }
 
-    public function addUserAccount(UserAccount $userAccount): static
+    public function setUserAccount(?UserAccount $userAccount): static
     {
-        if (!$this->userAccount->contains($userAccount)) {
-            $this->userAccount->add($userAccount);
-            $userAccount->setResponses($this);
-        }
+        $this->userAccount = $userAccount;
 
         return $this;
     }
 
-    public function removeUserAccount(UserAccount $userAccount): static
-    {
-        if ($this->userAccount->removeElement($userAccount)) {
-            // set the owning side to null (unless already changed)
-            if ($userAccount->getResponses() === $this) {
-                $userAccount->setResponses(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Tweet>
-     */
-    public function getTweet(): Collection
+    public function getTweet(): ?Tweet
     {
         return $this->tweet;
     }
 
-    public function addTweet(Tweet $tweet): static
+    public function setTweet(?Tweet $tweet): static
     {
-        if (!$this->tweet->contains($tweet)) {
-            $this->tweet->add($tweet);
-            $tweet->setResponse($this);
-        }
+        $this->tweet = $tweet;
 
         return $this;
     }
 
-    public function removeTweet(Tweet $tweet): static
-    {
-        if ($this->tweet->removeElement($tweet)) {
-            // set the owning side to null (unless already changed)
-            if ($tweet->getResponse() === $this) {
-                $tweet->setResponse(null);
-            }
-        }
-
-        return $this;
-    }
 
 }
