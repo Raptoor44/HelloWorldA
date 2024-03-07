@@ -5,7 +5,8 @@ namespace App\Controller;
 use App\Repository\UserAccountRepository;
 use App\Entity\UserAccount;
 
-use Doctrine\ORM\EntityManagerInterface;use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,7 +22,7 @@ class UserAccountController extends AbstractController
 
     private $passwordHasher;
 
-    public function __construct(UserAccountRepository $UserAccountRepository, SerializerInterface $serializer,  EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher)
+    public function __construct(UserAccountRepository $UserAccountRepository, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher)
     {
         $this->UserAccountRepository = $UserAccountRepository;
         $this->serializer = $serializer;
@@ -54,17 +55,13 @@ class UserAccountController extends AbstractController
         $userToSave->setLastName($data["lastName"]);
         $userToSave->setFirstName($data["firstName"]);
 
-
-
         $hashedPassword = $this->passwordHasher->hashPassword(
             $userToSave,
             $data["password"]
         );
 
         $userToSave->setPassword($hashedPassword);
-
         $userToSave->setAtCreated(new \DateTime(date("Y-m-d H:i:s")));
-
         $this->dataManager->persist($userToSave);
 
         $this->dataManager->flush();
@@ -93,6 +90,7 @@ class UserAccountController extends AbstractController
             $tweetData = [
                 'id' => $tweet->getId(),
                 'content' => $tweet->getContent(),
+                'numberLikes' => $tweet->getNumberLikes()
             ];
 
             $userData['tweets'][] = $tweetData;
