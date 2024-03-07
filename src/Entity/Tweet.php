@@ -29,6 +29,9 @@ class Tweet
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $atCreated = null;
 
+    #[ORM\ManyToOne(inversedBy: 'tweet')]
+    private ?Response $response = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -63,7 +66,7 @@ class Tweet
         return $this->atCreated;
     }
 
-    public function setAtCreated(?\DateTimeInterface $atCreated): static
+    public function setAtCreated(\DateTimeInterface $atCreated): static
     {
         $this->atCreated = $atCreated;
 
@@ -81,5 +84,18 @@ class Tweet
 
         return $this;
     }
+
+    public function getResponse(): ?Response
+    {
+        return $this->response;
+    }
+
+    public function setResponse(?Response $response): static
+    {
+        $this->response = $response;
+
+        return $this;
+    }
+
 
 }

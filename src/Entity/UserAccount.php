@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -46,6 +45,10 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Tweet::class, cascade: ['persist'])]
     private ?Collection $tweets;
+
+    #[ORM\ManyToOne(inversedBy: 'userAccount')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Response $responses = null;
 
     public function __construct()
     {
@@ -191,4 +194,34 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getTweet(): ?Response
+    {
+        return $this->tweet;
+    }
+
+    public function setTweet(Response $tweet): static
+    {
+        // set the owning side of the relation if necessary
+        if ($tweet->getUserAccount() !== $this) {
+            $tweet->setUserAccount($this);
+        }
+
+        $this->tweet = $tweet;
+
+        return $this;
+    }
+
+    public function getResponses(): ?Response
+    {
+        return $this->responses;
+    }
+
+    public function setResponses(?Response $responses): static
+    {
+        $this->responses = $responses;
+
+        return $this;
+    }
+
 }
