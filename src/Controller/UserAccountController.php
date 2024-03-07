@@ -12,6 +12,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
+use OpenApi\Attributes as OA;
 
 class UserAccountController extends AbstractController
 {
@@ -30,7 +31,8 @@ class UserAccountController extends AbstractController
         $this->passwordHasher = $passwordHasher;
     }
 
-    #[Route("api/users")]
+    #[Route("api/users", methods: ['GET'])]
+    #[OA\Tag(name:"UserAccount")]
     public function getAllPersonnes(): JsonResponse
     {
         $listPersonnes = $this->UserAccountRepository->findAll();
@@ -44,7 +46,8 @@ class UserAccountController extends AbstractController
         return $response;
     }
 
-    #[Route("api/user")]
+    #[Route("api/user", methods: ['POST'])]
+    #[OA\Tag(name:"UserAccount")]
     public function addUser(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -69,7 +72,8 @@ class UserAccountController extends AbstractController
         return $this->json(['message' => 'User created successfully', 'idUser' => $userToSave->getId()]);
     }
 
-    #[Route("api/user/{idUser}/tweets")]
+    #[Route("api/user/{idUser}/tweets", methods: ['GET'])]
+    #[OA\Tag(name:"UserAccount")]
     public function getTweetsByIdUser(int $idUser): JsonResponse
     {
         $user = $this->UserAccountRepository->findOneByIdWithTweets($idUser);

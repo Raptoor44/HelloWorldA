@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-
+use OpenApi\Attributes as OA;
 
 class TweetController extends AbstractController
 {
@@ -38,6 +38,7 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
+    #[OA\Tag(name:"Tweet")]
     public function createTweet(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -65,12 +66,14 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/{id}", name: "deleteTweet", methods: ['DELETE'])]
+    #[OA\Tag(name:"Tweet")]
     public function deleteTweet(int $id, TokenInterface $token): JsonResponse
     {
 
         $tweetToDelete = $this->tweetRepository->find($id);
 
         $user = $token->getUser();
+
         if (!($user instanceof UserAccount)) {
             $user = UserAccount::convertFrom($user);
         }
@@ -89,7 +92,8 @@ class TweetController extends AbstractController
 
     }
 
-    #[Route("api/tweet/incrementLikes/{id}", name: "incrementLikes", methods: ['PATCH'])]
+    #[Route("api/tweet/incrementLikes/{id}", name: "incrementLikesTweet", methods: ['PATCH'])]
+    #[OA\Tag(name:"Tweet")]
     public function incrementLikes(int $id): JsonResponse
     {
 
@@ -108,7 +112,8 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes increment successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
-    #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikes", methods: ['PATCH'])]
+    #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikesTweet", methods: ['PATCH'])]
+    #[OA\Tag(name:"Tweet")]
     public function unincrementLikes(int $id): JsonResponse
     {
 
@@ -132,7 +137,8 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
-    #[Route("api/tweet/{idTweet}/responses")]
+    #[Route("api/tweet/{idTweet}/responses", methods: ['GET'])]
+    #[OA\Tag(name:"Tweet")]
     public function getResponsesByTweet(int $idTweet): JsonResponse
     {
         $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
