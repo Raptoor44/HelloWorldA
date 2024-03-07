@@ -6,6 +6,7 @@ use App\Repository\ResponseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: ResponseRepository::class)]
 class Response
@@ -18,11 +19,16 @@ class Response
     #[ORM\Column(length: 255)]
     private ?string $content = null;
 
+    #[ORM\Column(nullable: false)]
+    private int $numberLikes = 0;
+
     #[ORM\ManyToOne(inversedBy: 'responses')]
     #[ORM\JoinColumn(nullable: false)]
+    #[MaxDepth(1)]
     private ?UserAccount $userAccount = null;
 
     #[ORM\ManyToOne(inversedBy: 'responses')]
+    #[MaxDepth(1)]
     private ?Tweet $tweet = null;
 
 
@@ -70,6 +76,18 @@ class Response
     public function setTweet(?Tweet $tweet): static
     {
         $this->tweet = $tweet;
+
+        return $this;
+    }
+
+    public function getNumberLikes(): ?int
+    {
+        return $this->numberLikes;
+    }
+
+    public function setNumberLikes(int $numberLikes): static
+    {
+        $this->numberLikes = $numberLikes;
 
         return $this;
     }

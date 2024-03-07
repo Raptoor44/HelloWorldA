@@ -7,5 +7,4 @@ use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
 class ResponseController extends AbstractController
 {
-
 }

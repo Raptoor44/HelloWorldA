@@ -121,6 +121,40 @@ class TweetController extends AbstractController
         #[Route("api/tweet/{idTweet}/responses")]
         public function getResponsesByTweet(int $idTweet): JsonResponse
         {
-            $tweet = $this->tweetRepository->find($idTweet);
+            $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
+
+            if(!$tweet){
+                return $this->json(['error' => 'Tweet not found'], 404);
+            }
+
+            $tweetData = [
+                'id' => $tweet->getId(),
+                'content' => $tweet->getContent(),
+                'responses' => []
+            ];
+
+            foreach ($tweet->getResponses() as $response){
+
+                $userData = [
+                    'id' => $response->getUserAccount()->getId(),
+                    'firstName' => $response->getUserAccount()->getFirstName(),
+                    'lastName' => $response->getUserAccount()->getLastName(),
+                ];
+
+                $responseData = [
+                    'id' => $response->getId(),
+                    'content' => $response->getContent(),
+                    'numberLikes' => $response->getNumberLikes(),
+                    'user' => $userData
+                ];
+
+                $tweetData['responses'][] = $responseData;
+            }
+            $jsonData = $this->serializer->serialize($tweetData, 'json');
+
+            $response = new JsonResponse($jsonData, 200, [], true);
+
+            return $response;
+
         }
 }

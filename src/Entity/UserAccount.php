@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserAccountRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -44,9 +45,11 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Tweet::class, cascade: ['persist'])]
+    #[MaxDepth(1)]
     private ?Collection $tweets;
 
     #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'userAccount')]
+    #[MaxDepth(1)]
     private Collection $responses;
 
     public function __construct()

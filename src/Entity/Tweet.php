@@ -31,6 +31,7 @@ class Tweet
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $atCreated = null;
 
+    #[MaxDepth(1)]
     #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'tweet')]
     private Collection $responses;
 

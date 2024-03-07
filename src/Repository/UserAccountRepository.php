@@ -46,8 +46,7 @@ class UserAccountRepository extends ServiceEntityRepository implements PasswordU
             ->andWhere('u.id = :idUserParam')
             ->setParameter('idUserParam', $idUserParam)
             ->getQuery()
-            ->getOneOrNullResult()
-            ;
+            ->getOneOrNullResult();
     }
 
 }
