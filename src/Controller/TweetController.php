@@ -10,7 +10,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -74,7 +73,7 @@ class TweetController extends AbstractController
         $this->dataManager->remove($tweetToDelete);
         $this->dataManager->flush();
 
-        return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $tweetToDelete->getId()]);
+        return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $id]);
     }
 
     #[Route("api/tweet/incrementLikes/{id}", name :"incrementLikes", methods: ['PATCH'])]
