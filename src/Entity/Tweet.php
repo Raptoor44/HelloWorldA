@@ -23,8 +23,8 @@ class Tweet
     #[ORM\Column]
     private ?int $numberLikes = null;
 
-    #[ORM\ManyToOne(targetEntity: UserAccount::class, inversedBy: 'tweets', cascade: ['persist'])]
-    #[JoinColumn(name: 'id', referencedColumnName: 'id')]
+    #[ORM\ManyToOne(targetEntity: UserAccount::class, inversedBy: 'tweets')]
+    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id')]
     #[MaxDepth(1)]
     private ?UserAccount $user = null;
 
@@ -32,7 +32,8 @@ class Tweet
     private ?\DateTimeInterface $atCreated = null;
 
     #[MaxDepth(1)]
-    #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'tweet')]
+    #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'tweet', cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: "CASCADE")]
     private Collection $responses;
 
     public function __construct()

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Tweet;
+use App\Entity\UserAccount;
 use App\Repository\TweetRepository;
 use App\Repository\UserAccountRepository;
 
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 
@@ -36,7 +38,8 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
-    public function createTweet(Request $request) : JsonResponse{
+    public function createTweet(Request $request): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
 
         $tweetToSave = new Tweet();
@@ -62,26 +65,37 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/{id}", name: "deleteTweet", methods: ['DELETE'])]
-    public function deleteTweet(int $id) : JsonResponse{
+    public function deleteTweet(int $id, TokenInterface $token): JsonResponse
+    {
 
         $tweetToDelete = $this->tweetRepository->find($id);
 
-        if(!$tweetToDelete){
-            return $this->json(['error' => 'Tweet not found'], 404);
+        $user = $token->getUser();
+        if (!($user instanceof UserAccount)) {
+            $user = UserAccount::convertFrom($user);
         }
 
-        $this->dataManager->remove($tweetToDelete);
-        $this->dataManager->flush();
+        if (!$tweetToDelete) {
+            return $this->json(['error' => 'Tweet not found'], 403);
+        }
 
-        return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $id]);
+        if ($user->getId() === $tweetToDelete->getUser()->getId() || in_array("ADMIN", $user->getRoles())) {
+            $this->dataManager->remove($tweetToDelete);
+            $this->dataManager->flush();
+
+            return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $id]);
+        }
+        return $this->json(['error' => 'Access Denied'], 401);#Non autorisé
+
     }
 
-    #[Route("api/tweet/incrementLikes/{id}", name :"incrementLikes", methods: ['PATCH'])]
-    public function incrementLikes(int $id) : JsonResponse {
+    #[Route("api/tweet/incrementLikes/{id}", name: "incrementLikes", methods: ['PATCH'])]
+    public function incrementLikes(int $id): JsonResponse
+    {
 
         $tweetToPatch = $this->tweetRepository->find($id);
 
-        if(!$tweetToPatch){
+        if (!$tweetToPatch) {
             return $this->json(['error' => 'Tweet not found'], 404);
         }
 
@@ -94,18 +108,19 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes increment successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
-    #[Route("api/tweet/unincrementLikes/{id}", name :"unincrementLikes", methods: ['PATCH'])]
-    public function unincrementLikes(int $id) : JsonResponse {
+    #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikes", methods: ['PATCH'])]
+    public function unincrementLikes(int $id): JsonResponse
+    {
 
         $tweetToPatch = $this->tweetRepository->find($id);
 
-        if(!$tweetToPatch){
+        if (!$tweetToPatch) {
             return $this->json(['error' => 'Tweet not found'], 404);
         }
 
         $increment = $tweetToPatch->getNumberLikes() - 1;
 
-        if($increment < 0){
+        if ($increment < 0) {
             return $this->json(['error' => 'Tweet has already numberLikes of 0'], 406); #Not acceptable
         }
 
@@ -117,43 +132,43 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
-        #[Route("api/tweet/{idTweet}/responses")]
-        public function getResponsesByTweet(int $idTweet): JsonResponse
-        {
-            $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
+    #[Route("api/tweet/{idTweet}/responses")]
+    public function getResponsesByTweet(int $idTweet): JsonResponse
+    {
+        $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
 
-            if(!$tweet){
-                return $this->json(['error' => 'Tweet not found'], 404);
-            }
+        if (!$tweet) {
+            return $this->json(['error' => 'Tweet not found'], 404);
+        }
 
-            $tweetData = [
-                'id' => $tweet->getId(),
-                'content' => $tweet->getContent(),
-                'responses' => []
+        $tweetData = [
+            'id' => $tweet->getId(),
+            'content' => $tweet->getContent(),
+            'responses' => []
+        ];
+
+        foreach ($tweet->getResponses() as $response) {
+
+            $userData = [
+                'id' => $response->getUserAccount()->getId(),
+                'firstName' => $response->getUserAccount()->getFirstName(),
+                'lastName' => $response->getUserAccount()->getLastName(),
             ];
 
-            foreach ($tweet->getResponses() as $response){
+            $responseData = [
+                'id' => $response->getId(),
+                'content' => $response->getContent(),
+                'numberLikes' => $response->getNumberLikes(),
+                'user' => $userData
+            ];
 
-                $userData = [
-                    'id' => $response->getUserAccount()->getId(),
-                    'firstName' => $response->getUserAccount()->getFirstName(),
-                    'lastName' => $response->getUserAccount()->getLastName(),
-                ];
-
-                $responseData = [
-                    'id' => $response->getId(),
-                    'content' => $response->getContent(),
-                    'numberLikes' => $response->getNumberLikes(),
-                    'user' => $userData
-                ];
-
-                $tweetData['responses'][] = $responseData;
-            }
-            $jsonData = $this->serializer->serialize($tweetData, 'json');
-
-            $response = new JsonResponse($jsonData, 200, [], true);
-
-            return $response;
-
+            $tweetData['responses'][] = $responseData;
         }
+        $jsonData = $this->serializer->serialize($tweetData, 'json');
+
+        $response = new JsonResponse($jsonData, 200, [], true);
+
+        return $response;
+
+    }
 }
