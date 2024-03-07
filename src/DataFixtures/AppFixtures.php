@@ -11,9 +11,18 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker;
 use PhpParser\Node\Expr\Array_;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    private $passwordHasher;
+
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    {
+        $this->passwordHasher = $passwordHasher;
+    }
+
     public function load(ObjectManager $manager)
     {
         $faker = Faker\Factory::create('fr_FR');
@@ -25,9 +34,15 @@ class AppFixtures extends Fixture
             $users[$i] = new UserAccount();
             $users[$i]->setFirstName($faker->firstName);
             $users[$i]->setLastName($faker->lastName);
-            $users[$i]->setPassword($faker->password);
             $users[$i]->setEmail($faker->email);
             $users[$i]->setAtCreated(new \DateTime($faker->date()));
+
+            $hashedPassword = $this->passwordHasher->hashPassword(
+                $users[$i],
+                $faker->password
+            );
+
+            $users[$i]->setPassword($hashedPassword);
 
             $manager->persist($users[$i]);
         }

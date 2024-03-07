@@ -38,28 +38,16 @@ class UserAccountRepository extends ServiceEntityRepository implements PasswordU
         $this->getEntityManager()->flush();
     }
 
-//    /**
-//     * @return UserAccount[] Returns an array of UserAccount objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findOneByIdWithTweets($idUserParam): ?UserAccount
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.tweets', 't') // Utilisation de LeftJoin pour inclure les utilisateurs sans tweets
+            ->addSelect('t') // Sélectionnez également les tweets
+            ->andWhere('u.id = :idUserParam')
+            ->setParameter('idUserParam', $idUserParam)
+            ->getQuery()
+            ->getOneOrNullResult()
+            ;
+    }
 
-//    public function findOneBySomeField($value): ?UserAccount
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

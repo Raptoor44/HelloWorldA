@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -35,7 +36,7 @@ class TweetController extends AbstractController
 
     }
 
-    #[Route("/tweet", name: "createTweet", methods: ['POST'])]
+    #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
     public function createTweet(Request $request) : JsonResponse{
         $data = json_decode($request->getContent(), true);
 
@@ -59,6 +60,62 @@ class TweetController extends AbstractController
         $this->dataManager->flush();
 
         return $this->json(['message' => 'Tweet created successfully', 'idTweet' => $tweetToSave->getId()]);
+    }
+
+    #[Route("api/tweet/{id}", name: "deleteTweet", methods: ['DELETE'])]
+    public function deleteTweet(int $id) : JsonResponse{
+
+        $tweetToDelete = $this->tweetRepository->find($id);
+
+        if(!$tweetToDelete){
+            return $this->json(['error' => 'Tweet not found'], 404);
+        }
+
+        $this->dataManager->remove($tweetToDelete);
+        $this->dataManager->flush();
+
+        return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $tweetToDelete->getId()]);
+    }
+
+    #[Route("api/tweet/incrementLikes/{id}", name :"incrementLikes", methods: ['PATCH'])]
+    public function incrementLikes(int $id) : JsonResponse {
+
+        $tweetToPatch = $this->tweetRepository->find($id);
+
+        if(!$tweetToPatch){
+            return $this->json(['error' => 'Tweet not found'], 404);
+        }
+
+        $increment = $tweetToPatch->getNumberLikes() + 1;
+        $tweetToPatch->setNumberLikes($increment);
+
+        $this->dataManager->persist($tweetToPatch);
+        $this->dataManager->flush();
+
+        return $this->json(['message' => 'Tweet numberLikes increment successfully', 'idTweet' => $tweetToPatch->getId()]);
+    }
+
+    #[Route("api/tweet/unincrementLikes/{id}", name :"unincrementLikes", methods: ['PATCH'])]
+    public function unincrementLikes(int $id) : JsonResponse {
+
+        $tweetToPatch = $this->tweetRepository->find($id);
+
+        if(!$tweetToPatch){
+            return $this->json(['error' => 'Tweet not found'], 404);
+        }
+
+        $increment = $tweetToPatch->getNumberLikes() - 1;
+
+        if($increment < 0){
+            return $this->json(['error' => 'Tweet has already numberLikes of 0'], 406); #Not acceptable
+        }
+
+        $tweetToPatch->setNumberLikes($increment);
+
+        $this->dataManager->persist($tweetToPatch);
+        $this->dataManager->flush();
+
+        return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
 }

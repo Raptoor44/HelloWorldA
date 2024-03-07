@@ -3,12 +3,13 @@
 namespace App\Controller;
 
 use App\Repository\UserAccountRepository;
+use App\Entity\UserAccount;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class UserAccountController extends AbstractController
@@ -16,13 +17,19 @@ class UserAccountController extends AbstractController
     private $UserAccountRepository;
     private $serializer;
 
-    public function __construct(UserAccountRepository $UserAccountRepository, SerializerInterface $serializer)
+    private $dataManager;
+
+    private $passwordHasher;
+
+    public function __construct(UserAccountRepository $UserAccountRepository, SerializerInterface $serializer,  EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher)
     {
         $this->UserAccountRepository = $UserAccountRepository;
         $this->serializer = $serializer;
+        $this->dataManager = $manager;
+        $this->passwordHasher = $passwordHasher;
     }
 
-    #[Route("/users")]
+    #[Route("api/users")]
     public function getAllPersonnes(): JsonResponse
     {
         $listPersonnes = $this->UserAccountRepository->findAll();
@@ -36,10 +43,44 @@ class UserAccountController extends AbstractController
         return $response;
     }
 
-    #[Route("/user/{idUser}/tweets")]
+    #[Route("api/user")]
+    public function addUser(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $userToSave = new UserAccount();
+
+        $userToSave->setEmail($data["email"]);
+        $userToSave->setLastName($data["lastName"]);
+        $userToSave->setFirstName($data["firstName"]);
+
+
+
+        $hashedPassword = $this->passwordHasher->hashPassword(
+            $userToSave,
+            $data["password"]
+        );
+
+        $userToSave->setPassword($hashedPassword);
+
+        $userToSave->setAtCreated(new \DateTime(date("Y-m-d H:i:s")));
+
+        $this->dataManager->persist($userToSave);
+
+        $this->dataManager->flush();
+
+        return $this->json(['message' => 'User created successfully', 'idUser' => $userToSave->getId()]);
+    }
+
+    #[Route("api/user/{idUser}/tweets")]
     public function getTweetsByIdUser(int $idUser): JsonResponse
     {
         $user = $this->UserAccountRepository->findOneByIdWithTweets($idUser);
+
+        if (!$user) {
+
+            return $this->json(['error' => 'User not found'], 404);
+        }
 
         $userData = [
             'id' => $user->getId(),

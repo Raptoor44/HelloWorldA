@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserAccountRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -13,8 +15,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    private ?UserPasswordHasherInterface $passwordHasher;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -44,10 +44,14 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20)]
     private ?string $lastName = null;
 
-    public function setPasswordHasher(UserPasswordHasherInterface $passwordHasher): void
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Tweet::class, cascade: ['persist'])]
+    private ?Collection $tweets;
+
+    public function __construct()
     {
-        $this->passwordHasher = $passwordHasher;
+        $this->tweets = new ArrayCollection();
     }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -108,7 +112,7 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPassword(string $password): static
     {
-        $this->password = hash('sha256', $password);
+        $this->password = $password;
 
         return $this;
     }
@@ -154,6 +158,36 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Tweet>
+     */
+    public function getTweets(): Collection
+    {
+        return $this->tweets;
+    }
+
+    public function addTweet(Tweet $tweet): static
+    {
+        if (!$this->tweets->contains($tweet)) {
+            $this->tweets->add($tweet);
+            $tweet->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTweet(Tweet $tweet): static
+    {
+        if ($this->tweets->removeElement($tweet)) {
+            // set the owning side to null (unless already changed)
+            if ($tweet->getUser() === $this) {
+                $tweet->setUser(null);
+            }
+        }
 
         return $this;
     }
