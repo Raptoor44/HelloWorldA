@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Response;
+use App\Entity\Tweet;
 use App\Entity\UserAccount;
 use App\Repository\ResponseRepository;
 use App\Repository\TweetRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -41,8 +43,29 @@ class ResponseController extends AbstractController
         $this->validator = $validator;
     }
 
-    #[ROUTE("api/response", name: "createResponse", methods: ["POST"])]
-    #[OA\Tag(name: "Response")]
+    /**
+     * @Route("api/response", name="createResponse", methods={"POST"})
+     * @OA\Tag(name="Response")
+     * @OA\RequestBody(
+     *     required=true,
+     *     description="Request body for creating a response",
+     *     @OA\JsonContent(
+     *         type="object",
+     *         required={"content", "idTweet"},
+     *         @OA\Property(property="content", type="string", example="Your response content"),
+     *         @OA\Property(property="idTweet", type="integer", example=123)
+     *     ),
+     *     @OA\MediaType(
+     *         mediaType="application/x-www-form-urlencoded",
+     *         @OA\Schema(
+     *             type="object",
+     *             required={"content", "idTweet"},
+     *             @OA\Property(property="content", type="string", example="Your response content"),
+     *             @OA\Property(property="idTweet", type="integer", example=123)
+     *         )
+     *     )
+     * )
+     */
     public function createResponse(Request $request, TokenInterface $token): JsonResponse
     {
         $data = json_decode($request->getContent(), true);

@@ -47,6 +47,7 @@ security:
   access_control:
     - { path: ^/api/login, roles: PUBLIC_ACCESS }
     - { path: ^/api/doc, roles: PUBLIC_ACCESS}
+    - { path: ^/api/tweets, roles: PUBLIC_ACCESS}
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 # Configuration spécifique pour les tests

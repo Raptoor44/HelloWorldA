@@ -41,6 +41,19 @@ class TweetController extends AbstractController
         $this->validator = $validator;
     }
 
+    #[Route("api/tweets", name: "getAllTweets", methods: ['GET'])]
+    #[OA\Tag(name: "Tweet")]
+    public function getAllTweets() : JsonResponse
+    {
+        $tweets = $this->tweetRepository->findAll();
+
+        if(count($tweets) != 0){
+            return $this->json(['tweets' => $tweets], 200);
+        }else{
+            return $this->json(["error" => "No tweets are find in database"], 204);
+        }
+    }
+
     #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
     #[OA\Tag(name: "Tweet")]
     public function createTweet(Request $request): JsonResponse
