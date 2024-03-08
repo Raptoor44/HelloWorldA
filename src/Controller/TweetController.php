@@ -15,18 +15,21 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class TweetController extends AbstractController
 {
     private $tweetRepository;
-
     private $userRepository;
-
     private $serializer;
-
     private $dataManager;
+    private $validator;
 
-    public function __construct(TweetRepository $tweetRepository, UserAccountRepository $userRepository, SerializerInterface $serializer, EntityManagerInterface $manager)
+    public function __construct(TweetRepository        $tweetRepository,
+                                UserAccountRepository  $userRepository,
+                                EntityManagerInterface $manager,
+                                SerializerInterface    $serializer,
+                                ValidatorInterface     $validator)
     {
         $this->tweetRepository = $tweetRepository;
         $this->userRepository = $userRepository;
@@ -35,10 +38,11 @@ class TweetController extends AbstractController
 
         $this->serializer = $serializer;
 
+        $this->validator = $validator;
     }
 
     #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
-    #[OA\Tag(name:"Tweet")]
+    #[OA\Tag(name: "Tweet")]
     public function createTweet(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -57,6 +61,14 @@ class TweetController extends AbstractController
         }
 
         $tweetToSave->setUser($userAccount);
+        $tweetToSave->setAtCreated(new \DateTime(date("Y-m-d H:i:s")));
+
+        $errors = $this->validator->validate($tweetToSave);
+
+        if (count($errors) > 0) {
+            $errorsString = (string)$errors;
+            return $this->json(['Error' => 'Tweet not register in database', $errorsString]);
+        }
 
 
         $this->dataManager->persist($tweetToSave);
@@ -66,7 +78,7 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/{id}", name: "deleteTweet", methods: ['DELETE'])]
-    #[OA\Tag(name:"Tweet")]
+    #[OA\Tag(name: "Tweet")]
     public function deleteTweet(int $id, TokenInterface $token): JsonResponse
     {
 
@@ -93,7 +105,7 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/incrementLikes/{id}", name: "incrementLikesTweet", methods: ['PATCH'])]
-    #[OA\Tag(name:"Tweet")]
+    #[OA\Tag(name: "Tweet")]
     public function incrementLikes(int $id): JsonResponse
     {
 
@@ -113,7 +125,7 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikesTweet", methods: ['PATCH'])]
-    #[OA\Tag(name:"Tweet")]
+    #[OA\Tag(name: "Tweet")]
     public function unincrementLikes(int $id): JsonResponse
     {
 
@@ -138,7 +150,7 @@ class TweetController extends AbstractController
     }
 
     #[Route("api/tweet/{idTweet}/responses", methods: ['GET'])]
-    #[OA\Tag(name:"Tweet")]
+    #[OA\Tag(name: "Tweet")]
     public function getResponsesByTweet(int $idTweet): JsonResponse
     {
         $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);

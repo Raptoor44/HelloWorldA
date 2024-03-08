@@ -3,10 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\ResponseRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ResponseRepository::class)]
 class Response
@@ -17,9 +16,16 @@ class Response
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        min: 2,
+        max: 100,
+        minMessage: 'The content of response is too short',
+        maxMessage: 'The content of your response is too long',
+    )]
     private ?string $content = null;
 
     #[ORM\Column(nullable: false)]
+    #[Assert\NotBlank]
     private int $numberLikes = 0;
 
     #[ORM\ManyToOne(inversedBy: 'responses')]
@@ -35,8 +41,6 @@ class Response
 
     public function __construct()
     {
-        $this->userAccount = new ArrayCollection();
-        $this->tweet = new ArrayCollection();
     }
 
     public function getId(): ?int

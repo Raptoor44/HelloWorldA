@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TweetRepository::class)]
 class Tweet
@@ -18,9 +19,16 @@ class Tweet
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'The content of tweet is too short',
+        maxMessage: 'The content of your tweet is too long',
+    )]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank]
     private ?int $numberLikes = null;
 
     #[ORM\ManyToOne(targetEntity: UserAccount::class, inversedBy: 'tweets')]

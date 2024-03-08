@@ -14,25 +14,37 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ResponseController extends AbstractController
 {
     private $responseRepository;
     private $serializer;
-
     private $tweetRepository;
-
     private $dataManager;
-    public function __construct(ResponseRepository $responseRepositoryParam, EntityManagerInterface $managerParam, SerializerInterface $serializerParam, TweetRepository $tweetRepository){
+    private $validator;
+
+
+    public function __construct(ResponseRepository     $responseRepositoryParam,
+                                TweetRepository        $tweetRepository,
+                                SerializerInterface    $serializerParam,
+                                EntityManagerInterface $managerParam,
+                                ValidatorInterface     $validator)
+    {
         $this->responseRepository = $responseRepositoryParam;
-        $this->serializer = $serializerParam;
-        $this->dataManager = $managerParam;
         $this->tweetRepository = $tweetRepository;
+
+        $this->serializer = $serializerParam;
+
+        $this->dataManager = $managerParam;
+
+        $this->validator = $validator;
     }
 
     #[ROUTE("api/response", name: "createResponse", methods: ["POST"])]
-    #[OA\Tag(name:"Response")]
-    public function createResponse(Request $request, TokenInterface $token): JsonResponse{
+    #[OA\Tag(name: "Response")]
+    public function createResponse(Request $request, TokenInterface $token): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
 
         $user = $token->getUser();
@@ -49,36 +61,44 @@ class ResponseController extends AbstractController
 
         $tweetToSave = $this->tweetRepository->find($data["idTweet"]);
 
-        if(!$tweetToSave){
+        if (!$tweetToSave) {
             return $this->json(['error' => 'Tweet not found'], 404);
         }
 
         $responseToSave->setTweet($tweetToSave);
 
+        $errors = $this->validator->validate($responseToSave);
+
+        if (count($errors) > 0) {
+            $errorsString = (string)$errors;
+            return $this->json(['Error' => 'Response not register in database', $errorsString]);
+        }
+
         $this->dataManager->persist($responseToSave);
         $this->dataManager->flush();
 
-        return $this->json(['message' => 'Response created successfully', 'idTweet' => $responseToSave->getId()]);
+        return $this->json(['message' => 'Response created successfully', 'idResponse' => $responseToSave->getId()]);
 
     }
 
     #[Route("api/response/{id}", name: "deleteResponse", methods: ['DELETE'])]
-    #[OA\Tag(name:"Response")]
-    public function deleteResponse(int $id, TokenInterface $token): JsonResponse {
+    #[OA\Tag(name: "Response")]
+    public function deleteResponse(int $id, TokenInterface $token): JsonResponse
+    {
 
         $responseToDelete = $this->responseRepository->find($id);
 
         $user = $token->getUser();
 
-        if(!($user instanceof UserAccount)){
+        if (!($user instanceof UserAccount)) {
             $user = UserAccount::convertFrom($user);
         }
 
-        if(!$responseToDelete){
+        if (!$responseToDelete) {
             return $this->json(['error' => 'response not found'], 403);
         }
 
-        if($user->getId() === $responseToDelete->getUserAccount()->getId() || in_array("ADMIN", $user->getRoles())){
+        if ($user->getId() === $responseToDelete->getUserAccount()->getId() || in_array("ADMIN", $user->getRoles())) {
             $this->dataManager->remove($responseToDelete);
             $this->dataManager->flush();
 
@@ -89,7 +109,7 @@ class ResponseController extends AbstractController
     }
 
     #[Route("api/response/unincrementLikes/{id}", name: "unincrementLikesResponse", methods: ['PATCH'])]
-    #[OA\Tag(name:"Response")]
+    #[OA\Tag(name: "Response")]
     public function unincrementLikes(int $id): JsonResponse
     {
 
@@ -114,7 +134,7 @@ class ResponseController extends AbstractController
     }
 
     #[Route("api/response/incrementLikes/{id}", name: "incrementLikesResponse", methods: ['PATCH'])]
-    #[OA\Tag(name:"Response")]
+    #[OA\Tag(name: "Response")]
     public function incrementLikes(int $id): JsonResponse
     {
 

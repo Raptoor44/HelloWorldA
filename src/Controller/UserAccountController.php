@@ -18,12 +18,13 @@ class UserAccountController extends AbstractController
 {
     private $UserAccountRepository;
     private $serializer;
-
     private $dataManager;
-
     private $passwordHasher;
 
-    public function __construct(UserAccountRepository $UserAccountRepository, SerializerInterface $serializer, EntityManagerInterface $manager, UserPasswordHasherInterface $passwordHasher)
+    public function __construct(UserAccountRepository $UserAccountRepository,
+                                SerializerInterface $serializer,
+                                EntityManagerInterface $manager,
+                                UserPasswordHasherInterface $passwordHasher)
     {
         $this->UserAccountRepository = $UserAccountRepository;
         $this->serializer = $serializer;
