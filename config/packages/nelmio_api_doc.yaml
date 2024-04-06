@@ -39,10 +39,10 @@ nelmio_api_doc:
                     properties:
                         username:
                             type: string
-                            default: admin@bookapi.com
+                            default: joachim.guitton@gmail.com
                         password:
                             type: string
-                            default: password
+                            default: 1234
             securitySchemes:
                 bearerAuth:
                     type: apiKey

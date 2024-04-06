@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
+use OpenApi\Attributes as OA;
 
 #[ORM\Entity(repositoryClass: UserAccountRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -18,30 +19,37 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[OA\Property(description: 'The unique identifier of the user.')]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[OA\Property(type: 'string', maxLength: 255)]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[OA\Property(type: 'string', maxLength: 255)]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[OA\Property(type: 'string', maxLength: 255)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[OA\Property(type: 'Date', maxLength: 255)]
     private ?\DateTimeInterface $atCreated = null;
 
     #[ORM\Column(length: 20)]
+    #[OA\Property(type: 'string', maxLength: 255)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 20)]
+    #[OA\Property(type: 'string', maxLength: 255)]
     private ?string $lastName = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Tweet::class, cascade: ['persist'])]

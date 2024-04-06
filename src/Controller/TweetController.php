@@ -8,6 +8,7 @@ use App\Repository\TweetRepository;
 use App\Repository\UserAccountRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,8 +42,18 @@ class TweetController extends AbstractController
         $this->validator = $validator;
     }
 
+    /**
+     *
+     * Cette route permet de récupérer tous les tweets des utilisateurs.
+     *
+     */
     #[Route("api/tweets", name: "getAllTweets", methods: ['GET'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Response(
+        response: 200,
+        description: 'La liste des tweets de base de données.',
+    )]
+    #[Security(name: 'Bearer')]
     public function getAllTweets() : JsonResponse
     {
         $tweets = $this->tweetRepository->findAll();
@@ -54,8 +65,23 @@ class TweetController extends AbstractController
         }
     }
 
+    /**
+     *
+     * La route permettant de créer un tweet.
+     *
+     */
     #[Route("api/tweet", name: "createTweet", methods: ['POST'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Parameter(
+        name: 'user',
+        description: "Le tweet et ses informations en paramètre.",
+        in: 'query',
+        required: true
+    )]
+    #[OA\Response(
+        response: 201,
+        description: "Le tweet a bien été créer.",
+    )]
     public function createTweet(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -90,8 +116,19 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet created successfully', 'idTweet' => $tweetToSave->getId()]);
     }
 
+
+    /**
+     *
+     * Cette route permet de supprimer un tweet.
+     *
+     */
     #[Route("api/tweet/{id}", name: "deleteTweet", methods: ['DELETE'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Response(
+        response: 202, #Status code accepted
+        description: 'Code de validation de suppression de tweet.',
+    )]
+    #[Security(name: 'Bearer')]
     public function deleteTweet(int $id, TokenInterface $token): JsonResponse
     {
 
@@ -117,8 +154,19 @@ class TweetController extends AbstractController
 
     }
 
+
+    /**
+     *
+     * Cette route permet d'incrémenter en nombre de like un tweet en question.
+     *
+     */
     #[Route("api/tweet/incrementLikes/{id}", name: "incrementLikesTweet", methods: ['PATCH'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Response(
+        response: 202, #Status code accepted
+        description: 'Le tweet a bien reçu un incément de like',
+    )]
+    #[Security(name: 'Bearer')]
     public function incrementLikes(int $id): JsonResponse
     {
 
@@ -137,8 +185,18 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes increment successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
+    /**
+     *
+     * Cette route permet de désincrémenter un tweet en fonction d'une route.
+     *
+     */
     #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikesTweet", methods: ['PATCH'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Response(
+        response: 202, #Status code accepted
+        description: 'Le tweet a bien reçu un désincrément de like',
+    )]
+    #[Security(name: 'Bearer')]
     public function unincrementLikes(int $id): JsonResponse
     {
 
@@ -162,8 +220,18 @@ class TweetController extends AbstractController
         return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
 
+    /**
+     *
+     * Cette route permet de récupérer une liste de réponses en fonction d'un identifiant de tweet.
+     *
+     */
     #[Route("api/tweet/{idTweet}/responses", methods: ['GET'])]
     #[OA\Tag(name: "Tweet")]
+    #[OA\Response(
+        response: 200, #Statuts code od
+        description: 'Liste de réponses',
+    )]
+    #[Security(name: 'Bearer')]
     public function getResponsesByTweet(int $idTweet): JsonResponse
     {
         $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);

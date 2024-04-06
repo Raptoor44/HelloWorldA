@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Dto\UserDto;
 use App\Repository\UserAccountRepository;
 use App\Entity\UserAccount;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Security;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -32,8 +35,18 @@ class UserAccountController extends AbstractController
         $this->passwordHasher = $passwordHasher;
     }
 
+    /**
+     *
+     *Cette route permet de récupérer la liste de tous les utilisateurs.
+     *
+     */
     #[Route("api/users", methods: ['GET'])]
     #[OA\Tag(name:"UserAccount")]
+    #[OA\Response(
+        response: 200,
+        description: 'Liste des tous les utilisateurs en base de données.',
+    )]
+    #[Security(name: 'Bearer')]
     public function getAllPersonnes(): JsonResponse
     {
         $listPersonnes = $this->UserAccountRepository->findAll();
@@ -47,8 +60,24 @@ class UserAccountController extends AbstractController
         return $response;
     }
 
+
+    /**
+     *
+     * La route pemettant de créer un utilisateur
+     *
+     */
     #[Route("api/user", methods: ['POST'])]
     #[OA\Tag(name:"UserAccount")]
+    #[OA\Parameter(
+        name: 'user',
+        description: "L'utilisateur et ses informations en paramètre.",
+        in: 'query',
+        required: true
+    )]
+    #[OA\Response(
+        response: 201,
+        description: "l'utilisateur a bien été créer.",
+    )]
     public function addUser(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -73,8 +102,20 @@ class UserAccountController extends AbstractController
         return $this->json(['message' => 'User created successfully', 'idUser' => $userToSave->getId()]);
     }
 
+
+
+    /**
+     *
+     * Cette route permet de récupérer la liste des tweets d'un utilisateur.
+     *
+     */
     #[Route("api/user/{idUser}/tweets", methods: ['GET'])]
     #[OA\Tag(name:"UserAccount")]
+    #[OA\Response(
+        response: 200,
+        description: 'Le Json permettant de récupérer la liste des tweets par utilisateur.',
+    )]
+    #[Security(name: 'Bearer')]
     public function getTweetsByIdUser(int $idUser): JsonResponse
     {
         $user = $this->UserAccountRepository->findOneByIdWithTweets($idUser);

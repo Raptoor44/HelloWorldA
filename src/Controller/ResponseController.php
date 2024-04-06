@@ -9,6 +9,7 @@ use App\Repository\ResponseRepository;
 use App\Repository\TweetRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -44,28 +45,22 @@ class ResponseController extends AbstractController
     }
 
     /**
-     * @Route("api/response", name="createResponse", methods={"POST"})
-     * @OA\Tag(name="Response")
-     * @OA\RequestBody(
-     *     required=true,
-     *     description="Request body for creating a response",
-     *     @OA\JsonContent(
-     *         type="object",
-     *         required={"content", "idTweet"},
-     *         @OA\Property(property="content", type="string", example="Your response content"),
-     *         @OA\Property(property="idTweet", type="integer", example=123)
-     *     ),
-     *     @OA\MediaType(
-     *         mediaType="application/x-www-form-urlencoded",
-     *         @OA\Schema(
-     *             type="object",
-     *             required={"content", "idTweet"},
-     *             @OA\Property(property="content", type="string", example="Your response content"),
-     *             @OA\Property(property="idTweet", type="integer", example=123)
-     *         )
-     *     )
-     * )
+     *
+     * Cette route permet de créer une réponse à tweet.
+     *
      */
+    #[Route("api/reponse", methods: ['POST'])]
+    #[OA\Tag(name:"Response")]
+    #[OA\Parameter(
+        name: 'user',
+        description: "La réponse avec ses différents paramètres.",
+        in: 'query',
+        required: true
+    )]
+    #[OA\Response(
+        response: 202,
+        description: "La réponse a bien été créer.",
+    )]
     public function createResponse(Request $request, TokenInterface $token): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -104,8 +99,18 @@ class ResponseController extends AbstractController
 
     }
 
+    /**
+     *
+     * Cette route permet de supprimer une réponse à tweet.
+     *
+     */
     #[Route("api/response/{id}", name: "deleteResponse", methods: ['DELETE'])]
     #[OA\Tag(name: "Response")]
+    #[OA\Response(
+        response: 202,
+        description: "Le code de confirmation de suppression.",
+    )]
+    #[Security(name: 'Bearer')]
     public function deleteResponse(int $id, TokenInterface $token): JsonResponse
     {
 
@@ -131,8 +136,19 @@ class ResponseController extends AbstractController
         return $this->json(['error' => 'Access Denied'], 401);#Non autorisé
     }
 
+
+    /**
+     *
+     * Cette route permet de désincrementer le nombre de like d'une reponse.
+     *
+     */
     #[Route("api/response/unincrementLikes/{id}", name: "unincrementLikesResponse", methods: ['PATCH'])]
     #[OA\Tag(name: "Response")]
+    #[OA\Response(
+        response: 202,
+        description: "Cette route permet de désincrementer le nombre de like d'une réponse",
+    )]
+    #[Security(name: 'Bearer')]
     public function unincrementLikes(int $id): JsonResponse
     {
 
@@ -156,8 +172,18 @@ class ResponseController extends AbstractController
         return $this->json(['message' => 'Response numberLikes Unincrement successfully', 'idTweet' => $responseToPatch->getId()]);
     }
 
+    /**
+     *
+     * Cette route permet d'incrémenter nombre de j'aime d'une réponse.
+     *
+     */
     #[Route("api/response/incrementLikes/{id}", name: "incrementLikesResponse", methods: ['PATCH'])]
     #[OA\Tag(name: "Response")]
+    #[OA\Response(
+        response: 202,
+        description: "Cette route permet d'incrémenter le nombre de like d'une réponse",
+    )]
+    #[Security(name: 'Bearer')]
     public function incrementLikes(int $id): JsonResponse
     {
 
