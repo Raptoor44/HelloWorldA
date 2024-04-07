@@ -2,14 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Log;
 use App\Entity\Response;
-use App\Entity\Tweet;
 use App\Entity\UserAccount;
 use App\Repository\ResponseRepository;
 use App\Repository\TweetRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -50,7 +48,7 @@ class ResponseController extends AbstractController
      *
      */
     #[Route("api/reponse", methods: ['POST'])]
-    #[OA\Tag(name:"Response")]
+    #[OA\Tag(name: "Response")]
     #[OA\Parameter(
         name: 'user',
         description: "La réponse avec ses différents paramètres.",
@@ -93,6 +91,24 @@ class ResponseController extends AbstractController
         }
 
         $this->dataManager->persist($responseToSave);
+
+        #Partie enregistrement de Reponse :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("ResponseController");
+        $log->setMethodLibelle("createResponse()");
+        $log->setContent("Enregistrement d'une réponse à un tweet. IdResponse : " . $responseToSave->getId()
+            . " id du tweet : " . $responseToSave->getTweet()->getId()
+            . " id de l'utilisateur ayant créer la réponse : " . $responseToSave->getUserAccount()->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
         $this->dataManager->flush();
 
         return $this->json(['message' => 'Response created successfully', 'idResponse' => $responseToSave->getId()]);
@@ -110,7 +126,6 @@ class ResponseController extends AbstractController
         response: 202,
         description: "Le code de confirmation de suppression.",
     )]
-    #[Security(name: 'Bearer')]
     public function deleteResponse(int $id, TokenInterface $token): JsonResponse
     {
 
@@ -128,7 +143,25 @@ class ResponseController extends AbstractController
 
         if ($user->getId() === $responseToDelete->getUserAccount()->getId() || in_array("ADMIN", $user->getRoles())) {
             $this->dataManager->remove($responseToDelete);
-            $this->dataManager->flush();
+            #Partie enregistrement de Reponse :
+
+            $log = new Log();
+
+            $log->setDateCreation(new \DateTime());
+            $log->setControllerLibelle("ResponseController");
+            $log->setMethodLibelle("deleteResponse()");
+            $log->setContent("Suppression de la réponse ayant pour id : "
+                . $responseToDelete->getId() . " id du tweet de la réponse : "
+                . $responseToDelete->getTweet()->getId() . " id de l'utilisateur ayant créer la réponse : "
+                . $responseToDelete->getUserAccount()->getId());
+
+            #Partie récupération user :
+
+            $user = $this->userService->GetUserWithTokenInterface($token);
+            $log->setIdUser($user);
+
+            $this->dataManager->persist($log);
+            $this->dataManager->flush();;
 
             return $this->json(['message' => "Response remove successfully", 'idResponse' => $id]);
         }
@@ -148,8 +181,7 @@ class ResponseController extends AbstractController
         response: 202,
         description: "Cette route permet de désincrementer le nombre de like d'une réponse",
     )]
-    #[Security(name: 'Bearer')]
-    public function unincrementLikes(int $id): JsonResponse
+    public function unincrementLikes(int $id, TokenInterface $token): JsonResponse
     {
 
         $responseToPatch = $this->responseRepository->find($id);
@@ -167,7 +199,22 @@ class ResponseController extends AbstractController
         $responseToPatch->setNumberLikes($increment);
 
         $this->dataManager->persist($responseToPatch);
-        $this->dataManager->flush();
+        #Partie enregistrement de Reponse :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("ResponseController");
+        $log->setMethodLibelle("unincrementLikes()");
+        $log->setContent("Désincrémentation de la réponse ayant pour id : " . $responseToPatch->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
+        $this->dataManager->flush();;
 
         return $this->json(['message' => 'Response numberLikes Unincrement successfully', 'idTweet' => $responseToPatch->getId()]);
     }
@@ -183,8 +230,7 @@ class ResponseController extends AbstractController
         response: 202,
         description: "Cette route permet d'incrémenter le nombre de like d'une réponse",
     )]
-    #[Security(name: 'Bearer')]
-    public function incrementLikes(int $id): JsonResponse
+    public function incrementLikes(int $id, TokenInterface $token): JsonResponse
     {
 
         $responseToPatch = $this->responseRepository->find($id);
@@ -197,8 +243,23 @@ class ResponseController extends AbstractController
         $responseToPatch->setNumberLikes($increment);
 
         $this->dataManager->persist($responseToPatch);
-        $this->dataManager->flush();
 
+        #Partie enregistrement de Reponse :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("ResponseController");
+        $log->setMethodLibelle("unincrementLikes()");
+        $log->setContent("Incrémentation de la réponse ayant pour id : " . $responseToPatch->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
+        $this->dataManager->flush();;
         return $this->json(['message' => 'Response numberLikes increment successfully', 'idTweet' => $responseToPatch->getId()]);
     }
 }

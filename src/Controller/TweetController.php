@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Log;
 use App\Entity\Tweet;
 use App\Entity\UserAccount;
 use App\Repository\TweetRepository;
 use App\Repository\UserAccountRepository;
 
+use App\Services\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +26,7 @@ class TweetController extends AbstractController
     private $serializer;
     private $dataManager;
     private $validator;
+    private $userService;
 
     public function __construct(TweetRepository        $tweetRepository,
                                 UserAccountRepository  $userRepository,
@@ -40,6 +42,8 @@ class TweetController extends AbstractController
         $this->serializer = $serializer;
 
         $this->validator = $validator;
+
+        $this->userService = new  UserService();
     }
 
     /**
@@ -53,16 +57,34 @@ class TweetController extends AbstractController
         response: 200,
         description: 'La liste des tweets de base de données.',
     )]
-    #[Security(name: 'Bearer')]
-    public function getAllTweets() : JsonResponse
+    public function getAllTweets(TokenInterface $token) : JsonResponse
     {
         $tweets = $this->tweetRepository->findAll();
 
         if(count($tweets) != 0){
+
+            #Partie enregistrement de log :
+
+            $log = new Log();
+
+            $log->setDateCreation(new \DateTime());
+            $log->setControllerLibelle("TweetController");
+            $log->setMethodLibelle("getAllTweets()");
+            $log->setContent("Récupération de tous les tweets");
+
+            #Partie récupération user :
+
+            $user = $this->userService->GetUserWithTokenInterface($token);
+            $log->setIdUser($user);
+
+            $this->dataManager->persist($log);
+            $this->dataManager->flush();
             return $this->json(['tweets' => $tweets], 200);
         }else{
             return $this->json(["error" => "No tweets are find in database"], 204);
         }
+
+
     }
 
     /**
@@ -82,7 +104,7 @@ class TweetController extends AbstractController
         response: 201,
         description: "Le tweet a bien été créer.",
     )]
-    public function createTweet(Request $request): JsonResponse
+    public function createTweet(Request $request, TokenInterface $token): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -111,6 +133,22 @@ class TweetController extends AbstractController
 
 
         $this->dataManager->persist($tweetToSave);
+
+        #Partie enregistrement de log :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("TweetController");
+        $log->setMethodLibelle("createTweet()");
+        $log->setContent("Enregistrement d'un nouveau tweet ayant pour id : " . $tweetToSave->getId() . " et ayant pour utilisateur : " . $tweetToSave->getUser()->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
         $this->dataManager->flush();
 
         return $this->json(['message' => 'Tweet created successfully', 'idTweet' => $tweetToSave->getId()]);
@@ -128,7 +166,6 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Code de validation de suppression de tweet.',
     )]
-    #[Security(name: 'Bearer')]
     public function deleteTweet(int $id, TokenInterface $token): JsonResponse
     {
 
@@ -146,6 +183,21 @@ class TweetController extends AbstractController
 
         if ($user->getId() === $tweetToDelete->getUser()->getId() || in_array("ADMIN", $user->getRoles())) {
             $this->dataManager->remove($tweetToDelete);
+            #Partie enregistrement de log :
+
+            $log = new Log();
+
+            $log->setDateCreation(new \DateTime());
+            $log->setControllerLibelle("TweetController");
+            $log->setMethodLibelle("deleteTweet()");
+            $log->setContent("Suppression du tweet ayant pour id : " . $tweetToDelete->getId());
+
+            #Partie récupération user :
+
+            $user = $this->userService->GetUserWithTokenInterface($token);
+            $log->setIdUser($user);
+
+            $this->dataManager->persist($log);
             $this->dataManager->flush();
 
             return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $id]);
@@ -166,8 +218,7 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Le tweet a bien reçu un incément de like',
     )]
-    #[Security(name: 'Bearer')]
-    public function incrementLikes(int $id): JsonResponse
+    public function incrementLikes(int $id, TokenInterface $token): JsonResponse
     {
 
         $tweetToPatch = $this->tweetRepository->find($id);
@@ -180,6 +231,22 @@ class TweetController extends AbstractController
         $tweetToPatch->setNumberLikes($increment);
 
         $this->dataManager->persist($tweetToPatch);
+
+        #Partie enregistrement de log :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("TweetController");
+        $log->setMethodLibelle("incrementLikes()");
+        $log->setContent("Incémentation de like pour : " .$tweetToPatch->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
         $this->dataManager->flush();
 
         return $this->json(['message' => 'Tweet numberLikes increment successfully', 'idTweet' => $tweetToPatch->getId()]);
@@ -196,8 +263,7 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Le tweet a bien reçu un désincrément de like',
     )]
-    #[Security(name: 'Bearer')]
-    public function unincrementLikes(int $id): JsonResponse
+    public function unincrementLikes(int $id, TokenInterface $token): JsonResponse
     {
 
         $tweetToPatch = $this->tweetRepository->find($id);
@@ -215,7 +281,23 @@ class TweetController extends AbstractController
         $tweetToPatch->setNumberLikes($increment);
 
         $this->dataManager->persist($tweetToPatch);
+        #Partie enregistrement de log :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("TweetController");
+        $log->setMethodLibelle("unincrementLikesTweet()");
+        $log->setContent("désincrémentation de like pour : " .$tweetToPatch->getId());
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
         $this->dataManager->flush();
+
 
         return $this->json(['message' => 'Tweet numberLikes Unincrement successfully', 'idTweet' => $tweetToPatch->getId()]);
     }
@@ -226,13 +308,12 @@ class TweetController extends AbstractController
      *
      */
     #[Route("api/tweet/{idTweet}/responses", methods: ['GET'])]
-    #[OA\Tag(name: "Tweet")]
+    #[OA\Tag(name: "Response")]
     #[OA\Response(
         response: 200, #Statuts code od
         description: 'Liste de réponses',
     )]
-    #[Security(name: 'Bearer')]
-    public function getResponsesByTweet(int $idTweet): JsonResponse
+    public function getResponsesByTweet(int $idTweet,TokenInterface $token): JsonResponse
     {
         $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
 
@@ -264,6 +345,24 @@ class TweetController extends AbstractController
             $tweetData['responses'][] = $responseData;
         }
         $jsonData = $this->serializer->serialize($tweetData, 'json');
+
+
+        #Partie enregistrement de log :
+
+        $log = new Log();
+
+        $log->setDateCreation(new \DateTime());
+        $log->setControllerLibelle("TweetController");
+        $log->setMethodLibelle("getResponsesByTweet()");
+        $log->setContent("Récupération des réponses du tweet ayant pour id : " .$idTweet);
+
+        #Partie récupération user :
+
+        $user = $this->userService->GetUserWithTokenInterface($token);
+        $log->setIdUser($user);
+
+        $this->dataManager->persist($log);
+        $this->dataManager->flush();
 
         $response = new JsonResponse($jsonData, 200, [], true);
 

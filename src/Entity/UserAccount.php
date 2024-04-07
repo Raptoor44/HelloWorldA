@@ -60,10 +60,15 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     #[MaxDepth(1)]
     private Collection $responses;
 
+    #[ORM\OneToMany(targetEntity: Log::class, mappedBy: 'user')]
+    #[MaxDepth(1)]
+    private Collection $logs;
+
     public function __construct()
     {
         $this->tweets = new ArrayCollection();
         $this->responses = new ArrayCollection();
+        $this->logs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -206,22 +211,6 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getTweet(): ?Response
-    {
-        return $this->tweet;
-    }
-
-    public function setTweet(Response $tweet): static
-    {
-        // set the owning side of the relation if necessary
-        if ($tweet->getUserAccount() !== $this) {
-            $tweet->setUserAccount($this);
-        }
-
-        $this->tweet = $tweet;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Response>
@@ -247,6 +236,36 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($response->getUserAccount() === $this) {
                 $response->setUserAccount(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Log>
+     */
+    public function getLogs(): Collection
+    {
+        return $this->logs;
+    }
+
+    public function addLog(Log $log): static
+    {
+        if (!$this->logs->contains($log)) {
+            $this->logs->add($log);
+            $log->setIdUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLog(Log $log): static
+    {
+        if ($this->logs->removeElement($log)) {
+            // set the owning side to null (unless already changed)
+            if ($log->getIdUser() === $this) {
+                $log->setIdUser(null);
             }
         }
 

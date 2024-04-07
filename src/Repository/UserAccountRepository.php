@@ -49,4 +49,13 @@ class UserAccountRepository extends ServiceEntityRepository implements PasswordU
             ->getOneOrNullResult();
     }
 
+    public function findAllWithoutLogs(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.id, u.email, u.firstName, u.lastName')
+            ->getQuery()
+            ->getResult();
+    }
+
+
 }

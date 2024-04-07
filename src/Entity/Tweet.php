@@ -39,9 +39,10 @@ class Tweet
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $atCreated = null;
 
-    #[MaxDepth(1)]
+
     #[ORM\OneToMany(targetEntity: Response::class, mappedBy: 'tweet', cascade: ['persist'])]
     #[ORM\JoinColumn(onDelete: "CASCADE")]
+    #[MaxDepth(1)]
     private Collection $responses;
 
     public function __construct()
