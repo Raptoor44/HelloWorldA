@@ -7,6 +7,7 @@ use App\Entity\Response;
 use App\Entity\UserAccount;
 use App\Repository\ResponseRepository;
 use App\Repository\TweetRepository;
+use App\Services\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,8 @@ class ResponseController extends AbstractController
     private $dataManager;
     private $validator;
 
+    private $userService;
+
 
     public function __construct(ResponseRepository     $responseRepositoryParam,
                                 TweetRepository        $tweetRepository,
@@ -40,6 +43,8 @@ class ResponseController extends AbstractController
         $this->dataManager = $managerParam;
 
         $this->validator = $validator;
+
+        $this->userService = new UserService();
     }
 
     /**

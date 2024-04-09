@@ -7,14 +7,19 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class UserService
 {
-    public function GetUserWithTokenInterface(TokenInterface $token) : UserAccount
+    public function GetUserWithTokenInterface(?TokenInterface $token = null): ?UserAccount
     {
-        $user = $token->getUser();
+        if ($token) {
+            $user = $token->getUser();
 
-        if (!($user instanceof UserAccount)) {
-            $user = UserAccount::convertFrom($user);
+            if (!($user instanceof UserAccount)) {
+                $user = UserAccount::convertFrom($user);
+            }
+
+            return $user;
+        } else {
+            return null;
         }
 
-        return $user;
     }
 }

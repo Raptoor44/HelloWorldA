@@ -96,7 +96,7 @@ class UserAccountController extends AbstractController
         response: 201,
         description: "l'utilisateur a bien été créer.",
     )]
-    public function addUser(Request $request, TokenInterface $token): JsonResponse
+    public function addUser(Request $request, ?TokenInterface $token = null): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -127,9 +127,15 @@ class UserAccountController extends AbstractController
         $log->setContent("Creation de l'utilisateur pour id : " . $userToSave->getId() . "Pour nom étant de " . $userToSave->getFirstName());
 
         #Partie récupération user :
+            $user = null;
 
-        $user = $this->userService->GetUserWithTokenInterface($token);
-        $log->setIdUser($user);
+        if($token){
+            $user = $this->userService->GetUserWithTokenInterface($token);
+        }
+
+        if($user){
+            $log->setIdUser($user);
+        }
 
         $this->dataManager->persist($log);
         $this->dataManager->flush();

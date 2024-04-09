@@ -22,5 +22,11 @@ class ResponseRepository extends ServiceEntityRepository
         parent::__construct($registry, Response::class);
     }
 
-
+    public function findAllWithoutOtherAttributes(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->select('r.id, r.content, r.numberLikes')
+            ->getQuery()
+            ->getResult();
+    }
 }

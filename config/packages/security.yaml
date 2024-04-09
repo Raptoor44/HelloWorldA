@@ -47,7 +47,9 @@ security:
   access_control:
     - { path: ^/api/login, roles: PUBLIC_ACCESS }
     - { path: ^/api/doc, roles: PUBLIC_ACCESS}
-    - { path: ^/api/tweets, roles: PUBLIC_ACCESS}
+    - { path: ^/api/tweets, roles: PUBLIC_ACCESS} #Permettre l'accès au requête GET en public
+    - { path: ^/api/responses, roles: PUBLIC_ACCESS} #Permettre l'accès au requête GET en public
+    - { path: ^/api/user, roles: PUBLIC_ACCESS,  methods: [POST]} #Pouvoir se créer un utilisateur admin rapidement
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 # Configuration spécifique pour les tests
