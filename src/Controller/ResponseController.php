@@ -49,6 +49,54 @@ class ResponseController extends AbstractController
 
     /**
      *
+     * Cette route permet de récupérer la liste de toutes les réponses.
+     *
+     */
+    #[Route("api/responses", name: "getAllResponses", methods: ['GET'])]
+    #[OA\Tag(name: "Response")]
+    #[OA\Response(
+        response: 200,
+        description: 'La liste des réponses en base de données..',
+    )]
+    public function getAllResponses(?TokenInterface $token = null): JsonResponse
+    {
+        $responses = $this->responseRepository->findAllWithoutOtherAttributes();
+
+        if (count($responses) != 0) {
+
+            #Partie enregistrement de log :
+
+            $log = new Log();
+
+            $log->setDateCreation(new \DateTime());
+            $log->setControllerLibelle("TweetController");
+            $log->setMethodLibelle("getAllResponses()");
+
+
+            #Partie récupération user :
+
+            $user = $this->userService->GetUserWithTokenInterface($token);
+            $log->setIdUser($user);
+
+            $contentGenerique = "Récuparation de toutes les réponses";
+
+            if ($user) {
+                $log->setContent($contentGenerique . " pour l'utilisateur" . $user->getId());
+            } else {
+                $log->setContent($contentGenerique . ".");
+            }
+
+
+            $this->dataManager->persist($log);
+            $this->dataManager->flush();
+            return $this->json(['tweets' => $responses], 200);
+        } else {
+            return $this->json(["error" => "No responses are find in database"], 204);
+        }
+    }
+
+    /**
+     *
      * Cette route permet de créer une réponse à tweet.
      *
      */
