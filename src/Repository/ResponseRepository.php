@@ -25,7 +25,9 @@ class ResponseRepository extends ServiceEntityRepository
     public function findAllWithoutOtherAttributes(): array
     {
         return $this->createQueryBuilder('r')
-            ->select('r.id, r.content, r.numberLikes')
+            ->select('r.id, r.content, r.numberLikes, u.id AS user_id, t.id AS tweet_id')
+            ->innerJoin('r.userAccount', 'u')
+            ->innerJoin('r.tweet', 't')
             ->getQuery()
             ->getResult();
     }

@@ -56,7 +56,7 @@ class ResponseController extends AbstractController
     #[OA\Tag(name: "Response")]
     #[OA\Response(
         response: 200,
-        description: 'La liste des réponses en base de données..',
+        description: 'La liste des réponses en base de données.',
     )]
     public function getAllResponses(?TokenInterface $token = null): JsonResponse
     {
@@ -184,11 +184,7 @@ class ResponseController extends AbstractController
 
         $responseToDelete = $this->responseRepository->find($id);
 
-        $user = $token->getUser();
-
-        if (!($user instanceof UserAccount)) {
-            $user = UserAccount::convertFrom($user);
-        }
+        $user = $this->userService->GetUserWithTokenInterface($token);
 
         if (!$responseToDelete) {
             return $this->json(['error' => 'response not found'], 403);

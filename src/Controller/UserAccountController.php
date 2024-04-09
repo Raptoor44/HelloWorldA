@@ -59,7 +59,6 @@ class UserAccountController extends AbstractController
         // Création d'une JsonResponse avec le contenu JSON
         $response = new JsonResponse($jsonData, 200, [], true, ['maxDepth' => 2]);
 
-
         $log = new Log();
 
         $log->setControllerLibelle("UserAccount");
