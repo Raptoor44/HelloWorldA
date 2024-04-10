@@ -1,29 +1,28 @@
-# Pour mettre en place le projet symfony :
+# API de Tweet :
 
- Heading La partie numéro 1 n'est pas obligatoire.
+Pour mettre en place le projet Symfony :
+(La partie 1 n'est pas obligatoire)
 
-  1) Il faut monter compose.yaml pour monter la base de données postegresql
-  2) Une fois la base de données monté, il faut mettre à jour les tables en base de données avec la commande :  `php bin/console make:entity --regenerate`
-  3) Pour initialiser le jeu de données, taper la commande : `php bin/console doctrine:fixtures:load`
+    1) La partie numéro 1 n'est pas obligatoire.
 
-  Une fois les différentes étapes réalisées, vous pouvez commencez à étudiez l'api avec la doc : `localhost:8080/api/doc`
+    2) Monter le fichier compose.yaml pour configurer la base de données PostgreSQL.
+
+    3) Une fois la base de données configurée, mettre à jour les tables en exécutant la commande : php bin/console make:entity --regenerate.
+
+    4) Pour initialiser le jeu de données, exécuter la commande : php bin/console doctrine:fixtures:load.
+
+Une fois ces étapes réalisées, vous pouvez commencer à explorer l'API via la documentation disponible à l'adresse : localhost:8080/api/doc.
 
 Implémentations réalisées :
 
-  Mise en place de 4 entités :
-    UserAccount
-    Tweet
-    Response (réponse à un tweet).
-    Log
-
-  Mise en place de l'authenfication par JWT.
-  Implémentation des rôles (ADMIN_ROLE : Droit de suppression + droit sur les logs | "Sans Role" : tous les autres droits d'un utilisateur lamda).
-  Mise en place de faker.
-  Mise en place du safe delete.
-  Chaque méthode des différents controllers enregistre des logs en base de données pour la mise en place traçabilité.
-  Tentative de mettre en place le soft delete avec Gedmo.
-  Tentative de mettre d'utiliser les vooters pour la gestion des rôles.
-
+    Mise en place de 4 entités : UserAccount, Tweet, Response (réponse à un tweet), Log.
+    Mise en place de l'authentification par JWT.
+    Implémentation des rôles (ADMIN_ROLE : Droit de suppression + accès aux logs | "Sans Rôle" : tous les autres droits d'un utilisateur standard).
+    Utilisation de Faker pour la génération de données factices.
+    Mise en place du "safe delete".
+    Enregistrement des logs en base de données pour assurer la traçabilité de chaque méthode des différents contrôleurs.
+    Tentative d'implémentation du "soft delete" avec Gedmo.
+    Tentative d'utilisation de "voters" pour la gestion des rôles.
 
 Modèle conceptuel des données final du projet (Noms des attributs différent sur le projet) :
 
