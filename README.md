@@ -1,4 +1,5 @@
 ### Heading Pour mettre en place le projet symfony :
+# Heading La partie numéro 1 n'est pas obligatoire.
 
   1) Il faut monter compose.yaml pour monter la base de données postegresql
   2) Une fois la base de données monté, il faut mettre à jour les tables en base de données avec la commande :  `php bin/console make:entity --regenerate`
