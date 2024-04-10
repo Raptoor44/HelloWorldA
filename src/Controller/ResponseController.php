@@ -97,7 +97,7 @@ class ResponseController extends AbstractController
 
     /**
      *
-     * Cette route permet de créer une réponse à tweet.
+     * Cette route permet de créer une réponse à un tweet.
      *
      */
     #[Route("api/reponse", methods: ['POST'])]
@@ -106,7 +106,7 @@ class ResponseController extends AbstractController
         name: 'user',
         description: "La réponse avec ses différents paramètres.",
         in: 'query',
-        required: true
+        required: true,
     )]
     #[OA\Response(
         response: 202,
@@ -170,7 +170,7 @@ class ResponseController extends AbstractController
 
     /**
      *
-     * Cette route permet de supprimer une réponse à tweet.
+     * Cette route permet de supprimer une réponse à un tweet.
      *
      */
     #[Route("api/response/{id}", name: "deleteResponse", methods: ['DELETE'])]
@@ -190,7 +190,7 @@ class ResponseController extends AbstractController
             return $this->json(['error' => 'response not found'], 403);
         }
 
-        if ($user->getId() === $responseToDelete->getUserAccount()->getId() || in_array("ADMIN", $user->getRoles())) {
+        if ($user->getId() === $responseToDelete->getUserAccount()->getId() || $this->isGranted('ROLE_ADMIN')) {
             $this->dataManager->remove($responseToDelete);
             #Partie enregistrement de Reponse :
 
@@ -270,7 +270,7 @@ class ResponseController extends AbstractController
 
     /**
      *
-     * Cette route permet d'incrémenter nombre de j'aime d'une réponse.
+     * Cette route permet d'incrémenter le nombre de j'aime d'une réponse.
      *
      */
     #[Route("api/response/incrementLikes/{id}", name: "incrementLikesResponse", methods: ['PATCH'])]

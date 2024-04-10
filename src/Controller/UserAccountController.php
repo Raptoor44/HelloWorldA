@@ -80,7 +80,7 @@ class UserAccountController extends AbstractController
 
     /**
      *
-     * La route pemettant de créer un utilisateur
+     * La route permet de créer un utilisateur.
      *
      */
     #[Route("api/user", methods: ['POST'])]
@@ -146,7 +146,7 @@ class UserAccountController extends AbstractController
 
     /**
      * Cette route permet de récupérer un utilisateur
-     * ainsi que ses tweets qui créer par cette utilisateur.
+     * ainsi que ses tweets créer par cette utilisateur.
      *
      */
     #[Route("api/user/{idUser}/tweets", methods: ['GET'])] #Route log method id numéro 2
@@ -203,6 +203,57 @@ class UserAccountController extends AbstractController
         $this->dataManager->flush();
 
         return $response;
+    }
+
+    /**
+     *
+     * Cette route permet de supprimer un tweet.
+     *
+     */
+    #[Route("api/user/{id}", name: "deleteUser", methods: ['DELETE'])]
+    #[OA\Tag(name: "UserAccount")]
+    #[OA\Response(
+        response: 202, #Status code accepted
+        description: 'Code de validation de suppression de user.',
+    )]
+    public function deleteTweet(int $id, TokenInterface $token): JsonResponse
+    {
+
+        $userToDelete = $this->UserAccountRepository->find($id);
+
+        $user = $token->getUser();
+
+        if (!($user instanceof UserAccount)) {
+            $user = UserAccount::convertFrom($user);
+        }
+
+        if (!$userToDelete) {
+            return $this->json(['error' => 'Tweet not found'], 403);
+        }
+
+        if ($user->getId() === $userToDelete->getId() || $this->isGranted('ROLE_ADMIN')) {
+            $this->dataManager->remove($userToDelete);
+            #Partie enregistrement de log :
+
+            $log = new Log();
+
+            $log->setDateCreation(new \DateTime());
+            $log->setControllerLibelle("TweetController");
+            $log->setMethodLibelle("deleteTweet()");
+            $log->setContent("Suppression du tweet ayant pour id : " . $userToDelete->getId());
+
+            #Partie récupération user :
+
+            $user = $this->userService->GetUserWithTokenInterface($token);
+            $log->setIdUser($user);
+
+            $this->dataManager->persist($log);
+            $this->dataManager->flush();
+
+            return $this->json(['message' => 'Tweet remove successfully', 'idTweet' => $id]);
+        }
+        return $this->json(['error' => 'Access Denied'], 401);#Non autorisé
+
     }
 
 }

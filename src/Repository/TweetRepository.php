@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Tweet;
-use App\Entity\UserAccount;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

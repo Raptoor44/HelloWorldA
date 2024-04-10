@@ -47,6 +47,22 @@ class AppFixtures extends Fixture
             $manager->persist($users[$i]);
         }
 
+        $user = new UserAccount();
+        $user->setFirstName("Guitton");
+        $user->setLastName("joachim");
+        $user->setEmail("joachim.guitton@gmail.com");
+
+
+        $hashedPassword = $this->passwordHasher->hashPassword(
+            $user,
+            "1234"
+        );
+
+        $user->setPassword($hashedPassword);
+        $user->setRoles("[ROLE_ADMIN]");
+
+        $manager->persist($user);
+
         $tweets = Array();
 
         for ($i = 0; $i < 1000; $i++) {

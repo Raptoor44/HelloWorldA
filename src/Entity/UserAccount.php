@@ -11,9 +11,12 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 use OpenApi\Attributes as OA;
+use Gedmo\Mapping\Annotation as Gedmo;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: UserAccountRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: false)]
 class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -64,6 +67,8 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
     #[MaxDepth(1)]
     private Collection $logs;
 
+    #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $deletedAt;
     public function __construct()
     {
         $this->tweets = new ArrayCollection();
@@ -268,6 +273,18 @@ class UserAccount implements UserInterface, PasswordAuthenticatedUserInterface
                 $log->setIdUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
 
         return $this;
     }

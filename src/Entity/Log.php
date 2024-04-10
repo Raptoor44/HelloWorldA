@@ -95,4 +95,16 @@ class Log
 
         return $this;
     }
+
+    public function getUser(): ?UserAccount
+    {
+        return $this->user;
+    }
+
+    public function setUser(?UserAccount $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 }

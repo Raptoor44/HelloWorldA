@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Log;
 use App\Entity\Tweet;
-use App\Entity\UserAccount;
 use App\Repository\TweetRepository;
 use App\Repository\UserAccountRepository;
 
@@ -14,7 +13,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -57,11 +55,11 @@ class TweetController extends AbstractController
         response: 200,
         description: 'La liste des tweets de base de données.',
     )]
-    public function getAllTweets(TokenInterface $token) : JsonResponse
+    public function getAllTweets(): JsonResponse
     {
         $tweets = $this->tweetRepository->findAll();
 
-        if(count($tweets) != 0){
+        if (count($tweets) != 0) {
 
             #Partie enregistrement de log :
 
@@ -74,13 +72,16 @@ class TweetController extends AbstractController
 
             #Partie récupération user :
 
-            $user = $this->userService->GetUserWithTokenInterface($token);
-            $log->setIdUser($user);
+            $user = $this->getUser(); #Utilisation d'une autre méthode pour récupérer l'utilisateur connecté.
+
+            if ($user) {
+                $log->setIdUser($user);
+            }
 
             $this->dataManager->persist($log);
             $this->dataManager->flush();
             return $this->json(['tweets' => $tweets], 200);
-        }else{
+        } else {
             return $this->json(["error" => "No tweets are find in database"], 204);
         }
 
@@ -104,7 +105,7 @@ class TweetController extends AbstractController
         response: 201,
         description: "Le tweet a bien été créer.",
     )]
-    public function createTweet(Request $request, TokenInterface $token): JsonResponse
+    public function createTweet(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -145,8 +146,11 @@ class TweetController extends AbstractController
 
         #Partie récupération user :
 
-        $user = $this->userService->GetUserWithTokenInterface($token);
-        $log->setIdUser($user);
+        $user = $this->getUser();
+
+        if ($user) {
+            $log->setIdUser($user);
+        }
 
         $this->dataManager->persist($log);
         $this->dataManager->flush();
@@ -166,22 +170,18 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Code de validation de suppression de tweet.',
     )]
-    public function deleteTweet(int $id, TokenInterface $token): JsonResponse
+    public function deleteTweet(int $id): JsonResponse
     {
 
         $tweetToDelete = $this->tweetRepository->find($id);
+        $user = $this->getUser();
 
-        $user = $token->getUser();
-
-        if (!($user instanceof UserAccount)) {
-            $user = UserAccount::convertFrom($user);
-        }
 
         if (!$tweetToDelete) {
             return $this->json(['error' => 'Tweet not found'], 403);
         }
 
-        if ($user->getId() === $tweetToDelete->getUser()->getId() || in_array("ADMIN", $user->getRoles())) {
+        if ($user->getId() === $tweetToDelete->getUser()->getId() || $this->isGranted('ROLE_ADMIN')) {
             $this->dataManager->remove($tweetToDelete);
             #Partie enregistrement de log :
 
@@ -194,8 +194,9 @@ class TweetController extends AbstractController
 
             #Partie récupération user :
 
-            $user = $this->userService->GetUserWithTokenInterface($token);
-            $log->setIdUser($user);
+            if ($user) {
+                $log->setIdUser($user);
+            }
 
             $this->dataManager->persist($log);
             $this->dataManager->flush();
@@ -218,7 +219,7 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Le tweet a bien reçu un incément de like',
     )]
-    public function incrementLikes(int $id, TokenInterface $token): JsonResponse
+    public function incrementLikes(int $id): JsonResponse
     {
 
         $tweetToPatch = $this->tweetRepository->find($id);
@@ -239,12 +240,15 @@ class TweetController extends AbstractController
         $log->setDateCreation(new \DateTime());
         $log->setControllerLibelle("TweetController");
         $log->setMethodLibelle("incrementLikes()");
-        $log->setContent("Incémentation de like pour : " .$tweetToPatch->getId());
+        $log->setContent("Incémentation de like pour : " . $tweetToPatch->getId());
 
         #Partie récupération user :
 
-        $user = $this->userService->GetUserWithTokenInterface($token);
-        $log->setIdUser($user);
+        $user = $this->getUser();
+
+        if ($user) {
+            $log->setIdUser($user);
+        }
 
         $this->dataManager->persist($log);
         $this->dataManager->flush();
@@ -254,7 +258,7 @@ class TweetController extends AbstractController
 
     /**
      *
-     * Cette route permet de désincrémenter un tweet en fonction d'une route.
+     * Cette route permet de désincrémenter le nombre de j'aime d'un tweet en fonction d'une route.
      *
      */
     #[Route("api/tweet/unincrementLikes/{id}", name: "unincrementLikesTweet", methods: ['PATCH'])]
@@ -263,7 +267,7 @@ class TweetController extends AbstractController
         response: 202, #Status code accepted
         description: 'Le tweet a bien reçu un désincrément de like',
     )]
-    public function unincrementLikes(int $id, TokenInterface $token): JsonResponse
+    public function unincrementLikes(int $id): JsonResponse
     {
 
         $tweetToPatch = $this->tweetRepository->find($id);
@@ -288,12 +292,15 @@ class TweetController extends AbstractController
         $log->setDateCreation(new \DateTime());
         $log->setControllerLibelle("TweetController");
         $log->setMethodLibelle("unincrementLikesTweet()");
-        $log->setContent("désincrémentation de like pour : " .$tweetToPatch->getId());
+        $log->setContent("désincrémentation de like pour : " . $tweetToPatch->getId());
 
         #Partie récupération user :
 
-        $user = $this->userService->GetUserWithTokenInterface($token);
-        $log->setIdUser($user);
+        $user = $this->getUser();
+
+        if ($user) {
+            $log->setIdUser($user);
+        }
 
         $this->dataManager->persist($log);
         $this->dataManager->flush();
@@ -313,7 +320,7 @@ class TweetController extends AbstractController
         response: 200, #Statuts code od
         description: 'Liste de réponses',
     )]
-    public function getResponsesByTweet(int $idTweet,TokenInterface $token): JsonResponse
+    public function getResponsesByTweet(int $idTweet): JsonResponse
     {
         $tweet = $this->tweetRepository->findOneByIdWithResponses($idTweet);
 
@@ -354,11 +361,15 @@ class TweetController extends AbstractController
         $log->setDateCreation(new \DateTime());
         $log->setControllerLibelle("TweetController");
         $log->setMethodLibelle("getResponsesByTweet()");
-        $log->setContent("Récupération des réponses du tweet ayant pour id : " .$idTweet);
+        $log->setContent("Récupération des réponses du tweet ayant pour id : " . $idTweet);
 
         #Partie récupération user :
 
-        $user = $this->userService->GetUserWithTokenInterface($token);
+        $user = $this->getUser();
+
+        if ($user) {
+            $log->setIdUser($user);
+        }
         $log->setIdUser($user);
 
         $this->dataManager->persist($log);
