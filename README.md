@@ -21,6 +21,9 @@ Implémentations réalisées :
     Utilisation de Faker pour la génération de données factices.
     Mise en place du "safe delete".
     Enregistrement des logs en base de données pour assurer la traçabilité de chaque méthode des différents contrôleurs.
+    Documentations avec Nelmio.
+    et autres...
+
     Tentative d'implémentation du "soft delete" avec Gedmo.
     Tentative d'utilisation de "voters" pour la gestion des rôles.
 
