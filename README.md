@@ -1,5 +1,6 @@
-### Heading Pour mettre en place le projet symfony :
-# Heading La partie numéro 1 n'est pas obligatoire.
+# Pour mettre en place le projet symfony :
+
+ Heading La partie numéro 1 n'est pas obligatoire.
 
   1) Il faut monter compose.yaml pour monter la base de données postegresql
   2) Une fois la base de données monté, il faut mettre à jour les tables en base de données avec la commande :  `php bin/console make:entity --regenerate`
@@ -16,6 +17,7 @@ Implémentations réalisées :
     Log
 
   Mise en place de l'authenfication par JWT.
+  Implémentation des rôles (ADMIN_ROLE : Droit de suppression + droit sur les logs | "Sans Role" : tous les autres droits d'un utilisateur lamda).
   Mise en place de faker
   Mise en place du safe delete.
   Chaque méthode des différents controllers enregistre des logs en base de données pour la mise en place traçabilité.
