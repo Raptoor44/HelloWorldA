@@ -18,7 +18,7 @@ Implémentations réalisées :
 
   Mise en place de l'authenfication par JWT.
   Implémentation des rôles (ADMIN_ROLE : Droit de suppression + droit sur les logs | "Sans Role" : tous les autres droits d'un utilisateur lamda).
-  Mise en place de faker
+  Mise en place de faker.
   Mise en place du safe delete.
   Chaque méthode des différents controllers enregistre des logs en base de données pour la mise en place traçabilité.
   Tentative de mettre en place le soft delete avec Gedmo.
@@ -27,7 +27,8 @@ Implémentations réalisées :
 
 Modèle conceptuel des données final du projet (Noms des attributs différent sur le projet) :
 
-![image](https://github.com/Raptoor44/HelloWorldA/assets/78044552/5aa50d6f-a213-481c-98a6-ed34b7225ca5)
+![image](https://github.com/Raptoor44/HelloWorldA/assets/78044552/90cf5a41-c567-418b-82fc-ed900f4e99f6)
+
 
 
 
