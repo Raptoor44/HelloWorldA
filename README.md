@@ -11,7 +11,7 @@ Pour mettre en place le projet Symfony :
 
     4) Pour initialiser le jeu de données, exécuter la commande : php bin/console doctrine:fixtures:load.
 
-Une fois ces étapes réalisées, vous pouvez commencer à explorer l'API via la documentation disponible à l'adresse : localhost:8080/api/doc.
+Une fois ces étapes réalisées, vous pouvez commencer à explorer l'API via la documentation disponible à l'adresse : localhost:8080/api/doc. (Notamment s'authentifier toute suite avec le bon utilisateur par défaut).
 
 Implémentations réalisées :
 
